@@ -73,6 +73,7 @@ namespace UI {
         printing += "               \n";
 
         if (game::game_over)printing += "Game over!";
+		else printing += "                ";
 
         std::cout << printing;
     }
@@ -121,10 +122,10 @@ public:
             num = r;
             switch (r) {
             case 0: {
-                X[0] = 3;
-                X[1] = 4;
-                X[2] = 5;
-                X[3] = 6;
+                X[0] = 4;
+                X[1] = 5;
+                X[2] = 6;
+                X[3] = 7;
                 Y[0] = 0;
                 Y[1] = 0;
                 Y[2] = 0;
@@ -208,7 +209,7 @@ public:
             }
         }
     }
-    void island() {
+    bool island() {
         std::string chbo[25] = {};
         for (int i = 0;i <= 24;i++) {
             chbo[i] = UI::chessboard[i];
@@ -219,9 +220,10 @@ public:
         for (int i = 0;i <= 3;i++) {
             if (chbo[Y[i] + 1][X[i]] != '.') {
                 landing();
-                break;
+                return 1;
             }
         }
+        return 0;
     }
 
 
@@ -267,7 +269,7 @@ public:
     }
 
 
-    void move(short Xsize, short Ysize) {
+    void move(short Xsize, short Ysize, bool doland) {
         short newX[4] = { 0 }, newY[4] = { 0 };
 
         for (int i = 0;i <= 3;i++) {
@@ -293,8 +295,15 @@ public:
             X[i] = newX[i];
             Y[i] = newY[i];
         }
-        island();
+        if (doland) {
+            island();
+        }
     }
+	void HardDrop() {
+		while (!island()) {
+			move(0, 1, 0);
+		}
+	}
 };
 int main() {
     unsigned int dropInterval = 500;
@@ -311,14 +320,17 @@ int main() {
                 continue;
             }
             if (key == 'a') {
-                obj.move(-1, 0);
+                obj.move(-1, 0, 1);
             }
             else if (key == 'd') {
-                obj.move(1, 0);
+                obj.move(1, 0, 1);
             }
             else if (key == 's') {
-                obj.move(0, 1);
+                obj.move(0, 1, 1);
             }
+			else if (key == 'w') {
+				obj.HardDrop();
+			}
             else if (key == 'q') {
                 obj.rotate(3);
             }
@@ -333,11 +345,21 @@ int main() {
 			else if (key == 27) {
 				break;
 			}
+			else if (key == 'r') {
+				for (int i = 0;i <= 23;i++) {
+					UI::chessboard[i] = "|..........|";
+				}
+				game::score = 0;
+				game::game_over = 0;
+                game::running = 1;
+				obj.landing();
+			}
         }
         UI::Depict();
         if (now - lastTime >= dropInterval) {
-            obj.move(0, 1);
+            obj.move(0, 1, 1);
             lastTime = now;
         }
     }
+	console::showCursor();
 }
